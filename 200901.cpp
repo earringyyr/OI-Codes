@@ -1,0 +1,76 @@
+#include<iostream>
+#include<cstdio>
+using namespace std;
+int main()
+{
+	//freopen("a.in","r",stdin);
+	//freopen("a.out","w",stdout);
+	int n,a;
+	cin>>n;
+	if(n==0)
+	{
+		cin>>a;
+		cout<<a;
+	}
+	else
+	for(int i=n;i>=0;i--)
+	{
+		cin>>a;
+		if(i==n&&i!=1&&i!=0)
+		{
+			if(a!=0)
+			{
+				if(a==1)
+					cout<<"x^"<<i;
+				if(a==-1)
+					cout<<"-x^"<<i;
+				if(a!=1&&a!=-1)
+					cout<<a<<"x^"<<i;
+			}
+		}
+		if(i==0)
+		{
+			if(a!=0)
+			{
+				if(a>=0)
+					cout<<"+"<<a;
+				else
+					cout<<a;
+			}
+		}
+		if(i==1)
+		{
+			if(a!=0)
+			{
+				if(a==1)
+					cout<<"+x";
+				if(a==-1)
+					cout<<"-x";
+				if(a!=1&&a!=-1)
+				{ 
+					if(a>0)
+						cout<<"+";
+					cout<<a<<"x";
+				}	
+			}
+		}
+		if(i!=n&&i!=0&&i!=1)
+		{
+			if(a>0)
+			{
+				if(a==1)
+					cout<<"+x^"<<i;
+				if(a!=1)
+					cout<<"+"<<a<<"x^"<<i;
+			}
+			if(a<0)
+			{
+				if(a==-1)
+					cout<<"-x^"<<i;
+				if(a!=-1)
+					cout<<a<<"x^"<<i;
+			}
+		}
+	}
+	return 0;
+} 
