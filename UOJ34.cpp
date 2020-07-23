@@ -27,6 +27,8 @@ void ntt(int *c, int type)
     for (int mid = 1; mid < num; mid <<= 1)
     {
         int w = ksm(3, (mod - 1) / (mid << 1));
+        if (type == -1)
+            w = ksm(w, mod - 2);
         for (int j = 0; j < num; j += (mid << 1))
         {
             int ww = 1;
@@ -38,13 +40,6 @@ void ntt(int *c, int type)
                 ww = (ll)w * ww % mod;
             }
         }
-    }
-    if (type == -1)
-    {
-        reverse(c + 1, c + num);
-        int inv = ksm(num, mod - 2);
-        for (int i = 0; i < num; ++i)
-            c[i] = (ll)c[i] * inv % mod;
     }
     return;
 }
@@ -67,7 +62,8 @@ int main()
     for (int i = 0; i < num; ++i)
         f[i] = (ll)f[i] * g[i] % mod;
     ntt(f, -1);
+    int inv = ksm(num, mod - 2);
     for (int i = 0; i <= m + n; ++i)
-        printf("%d ", f[i]);
+        printf("%d ", (int)((ll)f[i] * inv % mod));
     return 0;
 }
