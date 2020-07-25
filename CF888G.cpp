@@ -47,8 +47,12 @@ ll dfs(int k)
     if (tr[k][0] && tr[k][1])
     {
         int tmp = inf;
-        for (int i = l[tr[k][0]]; i <= r[tr[k][0]]; ++i)
-            tmp = min(tmp, query(a[i], k));
+        if (r[tr[k][0]] - l[tr[k][0]] < r[tr[k][1]] - l[tr[k][1]])
+            for (int i = l[tr[k][0]]; i <= r[tr[k][0]]; ++i)
+                tmp = min(tmp, query(a[i], k));
+        else
+            for (int i = l[tr[k][1]]; i <= r[tr[k][1]]; ++i)
+                tmp = min(tmp, query(a[i], k));
         ans += tmp;
     }
     return ans;
