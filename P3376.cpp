@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdio>
-#define inf 0x7fffffff
+#define int long long
+#define inf 0x7fffffffffffffff
 using namespace std;
 int n, m, s, t, ans, sum = 1, head[10005], lev[100005], cur[100005];
 struct node
@@ -73,18 +74,18 @@ int dinic(int k, int flow)
         lev[k] = -1;
     return res;
 }
-int main()
+signed main()
 {
-    scanf("%d%d%d%d", &n, &m, &s, &t);
+    scanf("%lld%lld%lld%lld", &n, &m, &s, &t);
     for (int i = 1; i <= m; ++i)
     {
         int u, v, w;
-        scanf("%d%d%d", &u, &v, &w);
+        scanf("%lld%lld%lld", &u, &v, &w);
         ins(u, v, w);
         ins(v, u, 0);
     }
     while (bfs())
         ans += dinic(s, inf);
-    printf("%d", ans);
+    printf("%lld", ans);
     return 0;
 }
