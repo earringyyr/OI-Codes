@@ -13,7 +13,7 @@ int gethash(int type, int id, int l, int r)
         return (hsh[r][id][0] - (ll)hsh[l - 1][id][0] * h[r - l + 1] % mod + mod) % mod;
     return (hsh[l][id][1] - (ll)hsh[r + 1][id][1] * h[r - l + 1] % mod + mod) % mod;
 }
-void calc()
+void calc(int type)
 {
     for (int i = 1; i <= n; ++i)
     {
@@ -55,13 +55,16 @@ void calc()
     {
         int posl = (i - len[i]) / 2, posr = (i + len[i]) / 2;
         l = 0;
-        r = min(posl + 1, n - posr + 2);
+        if (type == 0)
+            r = min(posl, n - posr + 2);
+        else
+            r = min(posl + 1, n - posr + 1);
         while (l < r)
         {
             int mid = (l + r + 1) >> 1;
-            if (posl - mid + 1 >= 1 && posr + mid - 2 <= n && gethash(0, 0, posl - mid + 1, posl) == gethash(1, 1, posr - 1, posr + mid - 2))
+            if (type == 0 && gethash(0, 0, posl - mid + 1, posl) == gethash(1, 1, posr - 1, posr + mid - 2))
                 l = mid;
-            else if (posl - mid + 2 >= 1 && posr + mid - 1 <= n && gethash(0, 1, posl - mid + 2, posl + 1) == gethash(1, 0, posr, posr + mid - 1))
+            else if (type == 1 && gethash(0, 1, posl - mid + 2, posl + 1) == gethash(1, 0, posr, posr + mid - 1))
                 l = mid;
             else
                 r = mid - 1;
@@ -73,10 +76,10 @@ void calc()
 int main()
 {
     scanf("%d%s%s", &n, a + 1, b + 1);
-    calc();
+    calc(0);
     for (int i = 1; i <= n; ++i)
         swap(a[i], b[i]);
-    calc();
+    calc(1);
     printf("%d\n", ans);
     return 0;
 }
