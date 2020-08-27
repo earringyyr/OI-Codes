@@ -71,7 +71,7 @@ namespace io_out
 } // namespace io_out
 typedef long long ll;
 const int inf = 1e8;
-int n, m, rt, cnt, ans, np, top, opt;
+int n, m, rt, cnt, opt, ans, np, top;
 int minx[600005][2], maxn[600005][2];
 int siz[600005], st[600005];
 int *nq;
@@ -89,22 +89,36 @@ struct tree
 {
     int l;
     int r;
+    int opt;
 } tr[600005];
 inline bool cmp(node aa, node bb)
 {
     return aa.x[opt] < bb.x[opt];
 }
-inline void build(int &id, int l, int r, int type)
+inline int solve(int l, int r)
+{
+    double sum[2][2] = {0};
+    for (int i = l; i <= r; ++i)
+    {
+        sum[0][0] += (ll)a[i].x[0] * a[i].x[0];
+        sum[0][1] += a[i].x[0];
+        sum[1][0] += (ll)a[i].x[1] * a[i].x[1];
+        sum[1][1] += a[i].x[1];
+    }
+    return sum[0][0] * (r - l + 1) - sum[0][1] * sum[0][1] < sum[1][0] * (r - l + 1) - sum[1][1] * sum[1][1];
+}
+inline void build(int &id, int l, int r)
 {
     if (l > r)
         return;
+    opt = solve(l, r);
     id = ++cnt;
     int mid = (l + r) >> 1;
     siz[id] = 1;
-    opt = type;
+    tr[id].opt = opt;
     nth_element(a + l, a + mid, a + r + 1, cmp);
-    build(tr[id].l, l, mid - 1, type ^ 1);
-    build(tr[id].r, mid + 1, r, type ^ 1);
+    build(tr[id].l, l, mid - 1);
+    build(tr[id].r, mid + 1, r);
     p[id] = a[mid];
     minx[id][0] = a[mid].x[0];
     minx[id][1] = a[mid].x[1];
@@ -128,7 +142,7 @@ inline void build(int &id, int l, int r, int type)
     }
     return;
 }
-inline void insert(int &id, node now, int type)
+inline void insert(int &id, node now)
 {
     if (!id)
     {
@@ -141,10 +155,10 @@ inline void insert(int &id, node now, int type)
         maxn[id][1] = now.x[1];
         return;
     }
-    if (now.x[type] <= p[id].x[type])
-        insert(tr[id].l, now, type ^ 1);
+    if (now.x[tr[id].opt] <= p[id].x[tr[id].opt])
+        insert(tr[id].l, now);
     else
-        insert(tr[id].r, now, type ^ 1);
+        insert(tr[id].r, now);
     siz[id] = 1;
     if (tr[id].l)
     {
@@ -166,7 +180,6 @@ inline void insert(int &id, node now, int type)
     {
         np = 1;
         nq = &id;
-        opt = type;
     }
     return;
 }
@@ -183,17 +196,18 @@ inline void dfs(int id)
     tr[id].r = 0;
     return;
 }
-inline void doit(int &id, int l, int r, int type)
+inline void doit(int &id, int l, int r)
 {
     if (l > r)
         return;
+    opt = solve(l, r);
     int mid = (l + r) >> 1;
     id = st[mid];
     siz[id] = 1;
-    opt = type;
+    tr[id].opt = opt;
     nth_element(a + l, a + mid, a + r + 1, cmp);
-    doit(tr[id].l, l, mid - 1, type ^ 1);
-    doit(tr[id].r, mid + 1, r, type ^ 1);
+    doit(tr[id].l, l, mid - 1);
+    doit(tr[id].r, mid + 1, r);
     p[id] = a[mid];
     minx[id][0] = a[mid].x[0];
     minx[id][1] = a[mid].x[1];
@@ -221,7 +235,7 @@ inline void rebuild(int &id)
 {
     top = 0;
     dfs(id);
-    doit(id, 1, top, opt);
+    doit(id, 1, top);
     return;
 }
 inline int ask(int id, node now)
@@ -270,7 +284,7 @@ int main()
         a[i].x[0] = io_in::read();
         a[i].x[1] = io_in::read();
     }
-    build(rt, 1, n, 0);
+    build(rt, 1, n);
     for (int i = 1; i <= m; ++i)
     {
         int t;
@@ -281,7 +295,7 @@ int main()
         if (t == 1)
         {
             np = 0;
-            insert(rt, b, 0);
+            insert(rt, b);
             if (np)
                 rebuild(*nq);
         }
