@@ -70,9 +70,9 @@ int main()
                 ins(v, u, w);
         }
         if (spfa())
-            puts("YE5");
+            puts("YES");
         else
-            puts("N0");
+            puts("NO");
     }
     return 0;
 }

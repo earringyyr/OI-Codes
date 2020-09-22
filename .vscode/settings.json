@@ -72,6 +72,8 @@
         "queue": "cpp",
         "*.tcc": "cpp",
         "optional": "cpp",
-        "string_view": "cpp"
+        "string_view": "cpp",
+        "any": "cpp",
+        "variant": "cpp"
     }
 }
