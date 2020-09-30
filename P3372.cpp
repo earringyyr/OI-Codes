@@ -1,104 +1,98 @@
-#include<iostream>
-#include<cstdio>
-#define lch id*2
-#define rch id*2+1
+#include <iostream>
+#include <cstdio>
+#define lch id << 1
+#define rch id << 1 | 1
+#define int long long
 using namespace std;
-long long a[100001];
-long long n,m;
-struct node
+int n, m, a[100005];
+struct tree
 {
-    long long l;
-    long long r;
-    long long sum;
-    long long lazy;
-}c[100001<<4];
-void build(long long id,long long l,long long r)
+    int l;
+    int r;
+    int num;
+    int lazy;
+} tr[400005];
+void build(int id, int l, int r)
 {
-    c[id].l=l;
-    c[id].r=r;
-    if(l==r)
+    tr[id].l = l;
+    tr[id].r = r;
+    if (l == r)
     {
-        c[id].sum=a[l];
-        return;	
+        tr[id].num = a[l];
+        return;
     }
-    long long mid=(l+r)/2;
-    build(lch,l,mid);
-    build(rch,mid+1,r);
-    c[id].sum=c[lch].sum+c[rch].sum;
+    int mid = (l + r) >> 1;
+    build(lch, l, mid);
+    build(rch, mid + 1, r);
+    tr[id].num = tr[lch].num + tr[rch].num;
     return;
 }
-void pushdown(long long id)
+void pushdown(int id)
 {
-    if(c[id].lazy&&c[id].l!=c[id].r)
-    {
-        long long lazy=c[id].lazy;
-        c[id].lazy=0;
-        c[lch].lazy+=lazy;
-        c[rch].lazy+=lazy;
-        c[lch].sum+=(c[lch].r-c[lch].l+1)*lazy;	
-        c[rch].sum+=(c[rch].r-c[rch].l+1)*lazy;
-    }
+    int lazy = tr[id].lazy;
+    tr[id].lazy = 0;
+    tr[lch].num += lazy * (tr[lch].r - tr[lch].l + 1);
+    tr[rch].num += lazy * (tr[rch].r - tr[rch].l + 1);
+    tr[lch].lazy += lazy;
+    tr[rch].lazy += lazy;
     return;
 }
-void add(long long id,long long l,long long r,long long val)
+void add(int id, int l, int r, int val)
 {
+    if (tr[id].l == l && tr[id].r == r)
+    {
+        tr[id].num += val * (r - l + 1);
+        tr[id].lazy += val;
+        return;
+    }
     pushdown(id);
-    if(c[id].l==l&&c[id].r==r)	
+    int mid = (tr[id].l + tr[id].r) >> 1;
+    if (r <= mid)
+        add(lch, l, r, val);
+    else if (l >= mid + 1)
+        add(rch, l, r, val);
+    else if (l <= mid && r >= mid + 1)
     {
-        c[id].lazy+=val;
-        c[id].sum+=(r-l+1)*val	;
-        return;
+        add(lch, l, mid, val);
+        add(rch, mid + 1, r, val);
     }
-    long long mid=(c[id].l+c[id].r)/2;
-    if(mid<l)
-    {
-        add(rch,l,r,val);
- 	    c[id].sum=c[lch].sum+c[rch].sum; 
-        return;
-    }
-    if(mid+1>r)
-    {
-        add(lch,l,r,val);	
-  	    c[id].sum=c[lch].sum+c[rch].sum; 
-        return;
-    }
-    add(lch,l,mid,val);
-    add(rch,mid+1,r,val);
-    c[id].sum=c[lch].sum+c[rch].sum; 
+    tr[id].num = tr[lch].num + tr[rch].num;
     return;
 }
-long long ask(long long id,long long l,long long r)
+int ask(int id, int l, int r)
 {
+    if (tr[id].l == l && tr[id].r == r)
+        return tr[id].num;
     pushdown(id);
-    if(c[id].l==l&&c[id].r==r)
-        return c[id].sum;
-    long long mid=(c[id].l+c[id].r)/2;
-    if(mid<l)
-        return ask(rch,l,r);
-    if(mid+1>r)
-        return ask(lch,l,r);
-    return ask(lch,l,mid)+ask(rch,mid+1,r);
+    int mid = (tr[id].l + tr[id].r) >> 1;
+    if (r <= mid)
+        return ask(lch, l, r);
+    if (l >= mid + 1)
+        return ask(rch, l, r);
+    return ask(lch, l, mid) + ask(rch, mid + 1, r);
 }
-int main()
+signed main()
 {
-    cin>>n>>m;
-    for(long long i=1;i<=n;++i)
-        cin>>a[i];
-    build(1,1,n);
-    for(long long i=1;i<=m;++i)
+    scanf("%lld%lld", &n, &m);
+    for (int i = 1; i <= n; ++i)
+        scanf("%lld", &a[i]);
+    build(1, 1, n);
+    for (int i = 1; i <= m; ++i)
     {
-        long long pan,x,y,k;
-        cin>>pan;
-        if(pan==1)
+        int type;
+        scanf("%lld", &type);
+        if (type == 1)
         {
-            cin>>x>>y>>k;
-            add(1,x,y,k);
+            int x, y, k;
+            scanf("%lld%lld%lld", &x, &y, &k);
+            add(1, x, y, k);
         }
-        else
+        if (type == 2)
         {
-            cin>>x>>y;
-            cout<<ask(1,x,y)<<endl;
+            int x, y;
+            scanf("%lld%lld", &x, &y);
+            printf("%lld\n", ask(1, x, y));
         }
     }
     return 0;
-}	
+}
