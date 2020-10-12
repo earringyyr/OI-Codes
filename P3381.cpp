@@ -1,15 +1,18 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
-#define inf 0x3f3f3f3f
+#include <algorithm>
+#include <queue>
+#define inf 0x7f7f7f7f
 using namespace std;
-int n, m, s, t, sum = 1, ans, cost, head[5005], d[5005], use[5005], cur[5005];
+int n, m, s, t, sum = 1, ans, cost;
+int head[5005], cur[5005], dis[5005], use[5005];
 struct node
 {
     int v;
     int w;
     int f;
-    int next;
+    int nxt;
 } a[100005];
 inline void ins(int u, int v, int w, int f)
 {
@@ -17,41 +20,48 @@ inline void ins(int u, int v, int w, int f)
     a[sum].v = v;
     a[sum].w = w;
     a[sum].f = f;
-    a[sum].next = head[u];
+    a[sum].nxt = head[u];
     head[u] = sum;
+    ++sum;
+    a[sum].v = u;
+    a[sum].w = 0;
+    a[sum].f = -f;
+    a[sum].nxt = head[v];
+    head[v] = sum;
     return;
 }
 inline bool spfa()
 {
     memset(use, 0, sizeof(use));
-    memset(d, 0x3f, sizeof(d));
+    memset(dis, 0x7f, sizeof(dis));
     for (int i = 1; i <= n; ++i)
         cur[i] = head[i];
-    int hhead = 0, ttail = 1, q[25000005], vis[5005] = {0};
-    q[1] = s;
+    int vis[5005] = {0};
+    queue<int> q;
+    q.push(s);
     vis[s] = 1;
-    d[s] = 0;
-    while (hhead < ttail)
+    dis[s] = 0;
+    while (!q.empty())
     {
-        ++hhead;
-        int k = q[hhead];
+        int k = q.front();
+        q.pop();
         vis[k] = 0;
-        int dd = head[k];
-        while (dd)
+        int d = head[k];
+        while (d)
         {
-            if (a[dd].w > 0 && d[a[dd].v] > d[k] + a[dd].f)
+            if (a[d].w > 0 && dis[a[d].v] > dis[k] + a[d].f)
             {
-                d[a[dd].v] = d[k] + a[dd].f;
-                if (!vis[a[dd].v])
+                dis[a[d].v] = dis[k] + a[d].f;
+                if (!vis[a[d].v])
                 {
-                    q[++ttail] = a[dd].v;
-                    vis[a[dd].v] = 1;
+                    q.push(a[d].v);
+                    vis[a[d].v] = 1;
                 }
             }
-            dd = a[dd].next;
+            d = a[d].nxt;
         }
     }
-    if (d[t] < inf)
+    if (dis[t] < inf)
         return true;
     else
         return false;
@@ -60,27 +70,27 @@ inline int dinic(int k, int flow)
 {
     if (k == t)
     {
-        cost += d[t] * flow;
+        cost += dis[t] * flow;
         return flow;
     }
     use[k] = 1;
-    int dd = cur[k], res = 0, delta;
-    while (dd)
+    int d = cur[k], res = 0, delta;
+    while (d)
     {
-        if (!use[a[dd].v] && a[dd].w > 0 && d[k] + a[dd].f == d[a[dd].v])
+        if (!use[a[d].v] && a[d].w > 0 && dis[k] + a[d].f == dis[a[d].v])
         {
-            delta = dinic(a[dd].v, min(a[dd].w, flow - res));
+            delta = dinic(a[d].v, min(a[d].w, flow - res));
             if (delta)
             {
-                a[dd].w -= delta;
-                a[dd ^ 1].w += delta;
+                a[d].w -= delta;
+                a[d ^ 1].w += delta;
                 res += delta;
                 if (res == flow)
                     break;
             }
         }
-        dd = a[dd].next;
-        cur[k] = dd;
+        d = a[d].nxt;
+        cur[k] = d;
     }
     use[k] = 0;
     if (res != flow)
@@ -95,7 +105,6 @@ int main()
         int u, v, w, f;
         scanf("%d%d%d%d", &u, &v, &w, &f);
         ins(u, v, w, f);
-        ins(v, u, 0, -f);
     }
     while (spfa())
         ans += dinic(s, inf);

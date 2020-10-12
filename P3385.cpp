@@ -39,12 +39,12 @@ bool spfa()
             if (d[a[dd].v] > d[k] + a[dd].w)
             {
                 d[a[dd].v] = d[k] + a[dd].w;
+                cnt[a[dd].v] = cnt[k] + 1;
+                if (cnt[a[dd].v] >= n)
+                    return true;
                 if (!vis[a[dd].v])
                 {
                     vis[a[dd].v] = 1;
-                    ++cnt[a[dd].v];
-                    if (cnt[a[dd].v] > n)
-                        return true;
                     q.push(a[dd].v);
                 }
             }
