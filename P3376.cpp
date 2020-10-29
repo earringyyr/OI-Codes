@@ -1,49 +1,55 @@
 #include <iostream>
 #include <cstdio>
+#include <cstring>
+#include <algorithm>
 #define int long long
 #define inf 0x7fffffffffffffff
 using namespace std;
-int n, m, s, t, ans, sum = 1, head[10005], lev[100005], cur[100005];
+int n, m, s, t, ans, sum = 1;
+int head[10005], lev[100005], cur[100005];
 struct node
 {
     int v;
     int w;
-    int next;
+    int nxt;
 } a[200005];
 void ins(int u, int v, int w)
 {
     ++sum;
     a[sum].v = v;
     a[sum].w = w;
-    a[sum].next = head[u];
+    a[sum].nxt = head[u];
     head[u] = sum;
+    ++sum;
+    a[sum].v = u;
+    a[sum].w = 0;
+    a[sum].nxt = head[v];
+    head[v] = sum;
     return;
 }
 bool bfs()
 {
-    int hhead = 0, ttail = 1, q[100005];
+    int hh = 0, tt = 1, q[100005];
+    memset(lev, -1, sizeof(lev));
     for (int i = 1; i <= n; ++i)
-    {
-        lev[i] = -1;
         cur[i] = head[i];
-    }
     q[1] = s;
     lev[s] = 0;
-    while (hhead < ttail)
+    while (hh < tt)
     {
-        ++hhead;
-        int k = q[hhead];
+        ++hh;
+        int k = q[hh];
         int d = head[k];
         while (d)
         {
             if (a[d].w > 0 && lev[a[d].v] == -1)
             {
                 lev[a[d].v] = lev[k] + 1;
-                q[++ttail] = a[d].v;
+                q[++tt] = a[d].v;
                 if (a[d].v == t)
                     return true;
             }
-            d = a[d].next;
+            d = a[d].nxt;
         }
     }
     return false;
@@ -67,7 +73,7 @@ int dinic(int k, int flow)
                     break;
             }
         }
-        d = a[d].next;
+        d = a[d].nxt;
         cur[k] = d;
     }
     if (res != flow)
@@ -82,7 +88,6 @@ signed main()
         int u, v, w;
         scanf("%lld%lld%lld", &u, &v, &w);
         ins(u, v, w);
-        ins(v, u, 0);
     }
     while (bfs())
         ans += dinic(s, inf);
