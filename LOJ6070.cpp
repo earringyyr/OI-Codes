@@ -56,7 +56,7 @@ void insert(int k, int w)
         tri[cnt].fail = tri[getfail(tri[cur].fail, w)].son[k];
         tri[cur].son[k] = cnt;
         ins(tri[cnt].fail, cnt);
-        if (tri[cnt].fail > 1 && calc(cnt) < tri[tri[cnt].fail].len * 2)
+        if (tri[cnt].fail > 1 && calc(cnt) == calc(tri[cnt].fail))
             anc[cnt] = anc[tri[cnt].fail];
         else
             anc[cnt] = cnt;
