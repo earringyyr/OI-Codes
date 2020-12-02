@@ -4,11 +4,13 @@
 #include <algorithm>
 #include <vector>
 using namespace std;
-#define lch id << 1
-#define rch id << 1 | 1
 typedef long long ll;
 const int mod = 998244353;
-int n, m, q, a[100005], type[100005], p[100005], v[100005];
+int n, m, q, hh, tt, mult = 1;
+int a[100005];
+int type[100005], p[100005], v[100005];
+int in[100005], f[100005], l[100005];
+int mul[100005], w[100005], ans[100005];
 vector<int> vec[100005];
 int read()
 {
@@ -23,90 +25,15 @@ int read()
     }
     return x;
 }
-struct tree
-{
-    int l;
-    int r;
-    int num;
-    int lazy;
-} tr[400005];
-void build(int id, int l, int r)
-{
-    tr[id].l = l;
-    tr[id].r = r;
-    tr[id].lazy = 1;
-    if (l == r)
-    {
-        tr[id].num = a[l];
-        return;
-    }
-    int mid = (l + r) >> 1;
-    build(lch, l, mid);
-    build(rch, mid + 1, r);
-    return;
-}
-void pushdown(int id)
-{
-    int lazy = tr[id].lazy;
-    tr[lch].lazy = (ll)tr[lch].lazy * lazy % mod;
-    tr[rch].lazy = (ll)tr[rch].lazy * lazy % mod;
-    tr[lch].num = (ll)tr[lch].num * lazy % mod;
-    tr[rch].num = (ll)tr[rch].num * lazy % mod;
-    tr[id].lazy = 1;
-    return;
-}
-void add(int id, int w, int val)
-{
-    if (tr[id].l == tr[id].r)
-    {
-        tr[id].num = (tr[id].num + val) % mod;
-        return;
-    }
-    pushdown(id);
-    int mid = (tr[id].l + tr[id].r) >> 1;
-    if (w <= mid)
-        add(lch, w, val);
-    else
-        add(rch, w, val);
-    return;
-}
-int ask(int id, int w)
-{
-    if (tr[id].l == tr[id].r)
-        return tr[id].num;
-    pushdown(id);
-    int mid = (tr[id].l + tr[id].r) >> 1;
-    if (w <= mid)
-        return ask(lch, w);
-    else
-        return ask(rch, w);
-}
-void dfs(int k)
-{
-    if (type[k] == 1)
-        add(1, p[k], v[k]);
-    else if (type[k] == 2)
-    {
-        tr[1].lazy = (ll)tr[1].lazy * v[k] % mod;
-        tr[1].num = (ll)tr[1].num * v[k] % mod;
-    }
-    else if (type[k] == 3)
-    {
-        int siz = vec[k].size();
-        for (int i = 0; i < siz; ++i)
-            dfs(vec[k][i]);
-    }
-    return;
-}
 int main()
 {
     n = read();
     for (int i = 1; i <= n; ++i)
         a[i] = read();
-    build(1, 1, n);
     m = read();
     for (int i = 1; i <= m; ++i)
     {
+        mul[i] = 1;
         type[i] = read();
         if (type[i] == 1)
         {
@@ -114,7 +41,10 @@ int main()
             v[i] = read();
         }
         else if (type[i] == 2)
+        {
             v[i] = read();
+            mul[i] = v[i];
+        }
         else if (type[i] == 3)
         {
             int c;
@@ -123,18 +53,54 @@ int main()
             {
                 int tmp;
                 tmp = read();
+                ++in[tmp];
                 vec[i].push_back(tmp);
             }
         }
     }
+    for (int i = 1; i <= m; ++i)
+        if (!in[i])
+            l[++tt] = i;
+    while (hh < tt)
+    {
+        int k = l[++hh];
+        for (int i = 0; i < vec[k].size(); ++i)
+        {
+            --in[vec[k][i]];
+            if (!in[vec[k][i]])
+                l[++tt] = vec[k][i];
+        }
+    }
+    for (int i = m; i >= 1; --i)
+        for (int j = 0; j < vec[l[i]].size(); ++j)
+            mul[l[i]] = (ll)mul[l[i]] * mul[vec[l[i]][j]] % mod;
     q = read();
     for (int i = 1; i <= q; ++i)
+        f[i] = read();
+    for (int i = q; i >= 1; --i)
+        if (type[f[i]] == 1)
+            ans[p[f[i]]] = (ans[p[f[i]]] + (ll)v[f[i]] * mult % mod) % mod;
+        else if (type[f[i]] == 2)
+            mult = (ll)mult * mul[f[i]] % mod;
+        else
+        {
+            w[f[i]] = (w[f[i]] + mult) % mod;
+            mult = (ll)mult * mul[f[i]] % mod;
+        }
+    for (int i = 1; i <= m; ++i)
     {
-        int f;
-        f = read();
-        dfs(f);
+        if (type[l[i]] == 1)
+            ans[p[l[i]]] = (ans[p[l[i]]] + (ll)v[l[i]] * w[l[i]] % mod) % mod;
+        if (type[l[i]] == 3)
+        {
+            for (int j = vec[l[i]].size() - 1; j >= 0; --j)
+            {
+                w[vec[l[i]][j]] = (w[vec[l[i]][j]] + w[l[i]]) % mod;
+                w[l[i]] = (ll)w[l[i]] * mul[vec[l[i]][j]] % mod;
+            }
+        }
     }
     for (int i = 1; i <= n; ++i)
-        printf("%d ", ask(1, i));
+        printf("%d ", (int)((ans[i] + (ll)a[i] * mult % mod) % mod));
     return 0;
 }
