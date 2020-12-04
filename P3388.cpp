@@ -1,21 +1,24 @@
 #include <iostream>
 #include <cstdio>
+#include <cstring>
+#include <algorithm>
 using namespace std;
-int n, m, sum, cnt, num, ans, head[20005], low[20005], dfn[20005], vis[20005];
+int n, m, sum, cnt, rt, num, ans;
+int head[20005], dfn[20005], low[20005], vis[20005];
 struct node
 {
     int v;
-    int next;
+    int nxt;
 } a[200005];
 void ins(int u, int v)
 {
     ++sum;
     a[sum].v = v;
-    a[sum].next = head[u];
+    a[sum].nxt = head[u];
     head[u] = sum;
     return;
 }
-void tarjan(int k, int root)
+void tarjan(int k)
 {
     ++cnt;
     dfn[k] = cnt;
@@ -25,22 +28,22 @@ void tarjan(int k, int root)
     {
         if (!dfn[a[d].v])
         {
-            tarjan(a[d].v, root);
+            tarjan(a[d].v);
             low[k] = min(low[k], low[a[d].v]);
-            if (low[a[d].v] >= dfn[k] && k != root)
+            if (low[a[d].v] >= dfn[k] && k != rt)
             {
                 if (!vis[k])
                     ++ans;
                 vis[k] = 1;
             }
-            if (k == root)
+            if (k == rt)
                 ++num;
         }
         else
             low[k] = min(low[k], dfn[a[d].v]);
-        d = a[d].next;
+        d = a[d].nxt;
     }
-    if (k == root && num >= 2)
+    if (k == rt && num >= 2)
     {
         ++ans;
         vis[k] = 1;
@@ -60,8 +63,10 @@ int main()
     for (int i = 1; i <= n; ++i)
         if (!dfn[i])
         {
+            cnt = 0;
             num = 0;
-            tarjan(i, i);
+            rt = i;
+            tarjan(i);
         }
     printf("%d\n", ans);
     for (int i = 1; i <= n; ++i)

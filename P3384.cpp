@@ -1,208 +1,191 @@
-#include<iostream>
-#include<cstdio>
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
 using namespace std;
-#define lch id*2
-#define rch id*2+1
-long long n,m,sum,r,p,cnt,b[100005],head[100005],siz[100005],top[100005],son[100005],dep[100005],fa[100005],dfn[100005],num[100005];
+#define lch id << 1
+#define rch id << 1 | 1
+typedef long long ll;
+int n, m, rt, mod, sum, cnt;
+int w[100005];
+int head[100005], fa[100005], siz[100005];
+int dep[100005], dfn[100005], num[100005];
+int top[100005], son[100005], ed[1000005];
 struct node
 {
-	long long v;
-	long long next;
-}a[200005];
+	int v;
+	int nxt;
+} a[200005];
 struct tree
 {
-	long long l;
-	long long r;
-	long long num;
-	long long lazy;
-}tr[400005];
-void ins(long long u,long long v)
+	int l;
+	int r;
+	int num;
+	int lazy;
+} tr[800005];
+void ins(int u, int v)
 {
 	++sum;
-	a[sum].v=v;
-	a[sum].next=head[u];
-	head[u]=sum;
+	a[sum].v = v;
+	a[sum].nxt = head[u];
+	head[u] = sum;
 	return;
 }
-void dfs1(long long id,long long f,long long deep)
+void dfs1(int k, int f)
 {
-	fa[id]=f;
-	dep[id]=deep;
-	siz[id]=1;
-	son[id]=-1;
-	long long d=head[id];
-	while(d)
+	fa[k] = f;
+	siz[k] = 1;
+	int d = head[k];
+	while (d)
 	{
-		if(a[d].v!=f)
+		if (a[d].v != f)
 		{
-			dfs1(a[d].v,id,deep+1);
-			siz[id]+=siz[a[d].v];
-			if(siz[id]==-1||siz[son[id]]<siz[a[d].v])
-				son[id]=a[d].v;
+			dep[a[d].v] = dep[k] + 1;
+			dfs1(a[d].v, k);
+			siz[k] += siz[a[d].v];
+			if (siz[a[d].v] > siz[son[k]])
+				son[k] = a[d].v;
 		}
-		d=a[d].next;
+		d = a[d].nxt;
 	}
 	return;
 }
-void dfs2(long long id,long long topf)
+void dfs2(int k, int topf)
 {
-	top[id]=topf;
-	dfn[id]=++cnt;
-	num[cnt]=b[id];
-	if(son[id]!=-1)
-		dfs2(son[id],topf);
-	long long d=head[id];
-	while(d)
+	++cnt;
+	dfn[k] = cnt;
+	num[cnt] = k;
+	top[k] = topf;
+	if (son[k])
+		dfs2(son[k], topf);
+	int d = head[k];
+	while (d)
 	{
-		if(a[d].v!=fa[id]&&a[d].v!=son[id])
-			dfs2(a[d].v,a[d].v);
-		d=a[d].next;
+		if (a[d].v != fa[k] && a[d].v != son[k])
+			dfs2(a[d].v, a[d].v);
+		d = a[d].nxt;
 	}
+	ed[k] = cnt;
 	return;
 }
-void build(long long id,long long l,long long r)
+void build(int id, int l, int r)
 {
-	tr[id].l=l;
-	tr[id].r=r;
-	if(l==r)
+	tr[id].l = l;
+	tr[id].r = r;
+	if (l == r)
 	{
-		tr[id].num=num[l];
+		tr[id].num = w[num[l]];
 		return;
 	}
-	long long mid=(l+r)/2;
-	build(lch,l,mid);
-	build(rch,mid+1,r);
-	tr[id].num=(tr[lch].num+tr[rch].num)%p;
+	int mid = (l + r) >> 1;
+	build(lch, l, mid);
+	build(rch, mid + 1, r);
+	tr[id].num = ((ll)tr[lch].num + tr[rch].num) % mod;
 	return;
 }
-void pushdown(long long id)
+void pushdown(int id)
 {
-	if(tr[id].l!=tr[id].r)
-	{
-		long long lazy=tr[id].lazy;
-		tr[id].lazy=0;
-		tr[lch].lazy+=lazy;
-		tr[rch].lazy+=lazy;
-		tr[lch].num+=lazy*(tr[lch].r-tr[lch].l+1);
-		tr[rch].num+=lazy*(tr[rch].r-tr[rch].l+1);
-		tr[lch].num%=p;
-		tr[rch].num%=p;
-		tr[lch].lazy%=p;
-		tr[rch].lazy%=p;
-	}
+	int lazy = tr[id].lazy;
+	tr[id].lazy = 0;
+	tr[lch].num = (tr[lch].num + (ll)(tr[lch].r - tr[lch].l + 1) * lazy % mod) % mod;
+	tr[lch].lazy = ((ll)tr[lch].lazy + lazy) % mod;
+	tr[rch].num = (tr[rch].num + (ll)(tr[rch].r - tr[rch].l + 1) * lazy % mod) % mod;
+	tr[rch].lazy = ((ll)tr[rch].lazy + lazy) % mod;
 	return;
 }
-void add(long long id,long long l,long long r,long long val)
+void add(int id, int l, int r, int val)
 {
-	pushdown(id);
-	if(tr[id].l==l&&tr[id].r==r)
+	if (tr[id].l == l && tr[id].r == r)
 	{
-		tr[id].lazy+=val;
-		tr[id].num+=val*(tr[id].r-tr[id].l+1);
-		tr[id].lazy%=p;
-		tr[id].num%=p;
+		tr[id].num = (tr[id].num + (ll)(r - l + 1) * val % mod) % mod;
+		tr[id].lazy = ((ll)tr[id].lazy + val) % mod;
 		return;
 	}
-	long long mid=(tr[id].l+tr[id].r)/2;
-	if(r<=mid)
-		add(lch,l,r,val);
-	if(l>=mid+1)
-		add(rch,l,r,val);
-	if(l<=mid&&r>=mid+1)
+	pushdown(id);
+	int mid = (tr[id].l + tr[id].r) >> 1;
+	if (r <= mid)
+		add(lch, l, r, val);
+	if (l >= mid + 1)
+		add(rch, l, r, val);
+	if (l <= mid && r >= mid + 1)
 	{
-		add(lch,l,mid,val);
-		add(rch,mid+1,r,val);
+		add(lch, l, mid, val);
+		add(rch, mid + 1, r, val);
 	}
-	tr[id].num=(tr[lch].num+tr[rch].num)%p;
+	tr[id].num = ((ll)tr[lch].num + tr[rch].num) % mod;
 	return;
 }
-long long ask(long long id,long long l,long long r)
+int ask(int id, int l, int r)
 {
-	pushdown(id);
-	if(tr[id].l==l&&tr[id].r==r)
+	if (tr[id].l == l && tr[id].r == r)
 		return tr[id].num;
-	long long mid=(tr[id].l+tr[id].r)/2;
-	if(r<=mid)
-		return ask(lch,l,r);
-	if(l>=mid+1)
-		return ask(rch,l,r);
-	if(l<=mid&&r>=mid+1)
-		return (ask(lch,l,mid)+ask(rch,mid+1,r))%p;
-}
-void lian(long long x,long long y,long long val)
-{
-	while(top[x]!=top[y])
-	{
-		if(dep[top[x]]<dep[top[y]])
-			swap(x,y);
-		add(1,dfn[top[x]],dfn[x],val);
-		x=fa[top[x]];
-	}
-	if(dep[x]>dep[y])
-		swap(x,y);
-	add(1,dfn[x],dfn[y],val);
-	return;
-}
-long long ask_lian(long long x,long long y)
-{
-	long long ans=0;
-	while(top[x]!=top[y])
-	{
-		if(dep[top[x]]<dep[top[y]])
-			swap(x,y);
-		ans+=ask(1,dfn[top[x]],dfn[x]);
-		ans%=p;
-		x=fa[top[x]];
-	}
-	if(dep[x]>dep[y])
-		swap(x,y);
-	ans+=ask(1,dfn[x],dfn[y]);
-	ans%=p;
-	return ans;
+	pushdown(id);
+	int mid = (tr[id].l + tr[id].r) >> 1;
+	if (r <= mid)
+		return ask(lch, l, r);
+	if (l >= mid + 1)
+		return ask(rch, l, r);
+	return ((ll)ask(lch, l, mid) + ask(rch, mid + 1, r)) % mod;
 }
 int main()
 {
-	scanf("%lld%lld%lld%lld",&n,&m,&r,&p);
-	for(long long i=1;i<=n;++i)
-		scanf("%lld",&b[i]);
-	for(long long i=1;i<n;++i)
+	scanf("%d%d%d%d", &n, &m, &rt, &mod);
+	for (int i = 1; i <= n; ++i)
+		scanf("%d", &w[i]);
+	for (int i = 1; i < n; ++i)
 	{
-		long long x,y;
-		scanf("%lld%lld",&x,&y);
-		ins(x,y);
-		ins(y,x);
+		int u, v;
+		scanf("%d%d", &u, &v);
+		ins(u, v);
+		ins(v, u);
 	}
-	dfs1(r,0,1);
-	dfs2(r,r);
-	build(1,1,n);
-	for(long long i=1;i<=m;++i)
+	dfs1(rt, 0);
+	dfs2(rt, rt);
+	build(1, 1, n);
+	for (int i = 1; i <= m; ++i)
 	{
-		long long pan;
-		scanf("%lld",&pan);
-		if(pan==1)
+		int type, x;
+		scanf("%d%d", &type, &x);
+		if (type == 1)
 		{
-			long long x,y,z;
-			scanf("%lld%lld%lld",&x,&y,&z);
-			lian(x,y,z);
+			int y, z;
+			scanf("%d%d", &y, &z);
+			while (top[x] != top[y])
+			{
+				if (dep[top[x]] < dep[top[y]])
+					swap(x, y);
+				add(1, dfn[top[x]], dfn[x], z);
+				x = fa[top[x]];
+			}
+			if (dfn[x] > dfn[y])
+				swap(x, y);
+			add(1, dfn[x], dfn[y], z);
 		}
-		if(pan==2)
+		else if (type == 2)
 		{
-			long long x,y;
-			scanf("%lld%lld",&x,&y);
-			printf("%lld\n",ask_lian(x,y));
+			int y;
+			scanf("%d", &y);
+			int ans = 0;
+			while (top[x] != top[y])
+			{
+				if (dep[top[x]] < dep[top[y]])
+					swap(x, y);
+				ans = ((ll)ans + ask(1, dfn[top[x]], dfn[x])) % mod;
+				x = fa[top[x]];
+			}
+			if (dfn[x] > dfn[y])
+				swap(x, y);
+			ans = ((ll)ans + ask(1, dfn[x], dfn[y])) % mod;
+			printf("%d\n", ans);
 		}
-		if(pan==3)
+		else if (type == 3)
 		{
-			long long x,z;
-			scanf("%lld%lld",&x,&z);
-			add(1,dfn[x],dfn[x]+siz[x]-1,z);
+			int z;
+			scanf("%d", &z);
+			add(1, dfn[x], ed[x], z);
 		}
-		if(pan==4)
-		{
-			long long x;
-			scanf("%lld",&x);
-			printf("%lld\n",ask(1,dfn[x],dfn[x]+siz[x]-1));
-		}
+		else
+			printf("%d\n", ask(1, dfn[x], ed[x]));
 	}
 	return 0;
 }

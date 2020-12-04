@@ -1,164 +1,132 @@
-#include<iostream>
-#include<cstdio>
-#define lch id*2
-#define rch id*2+1
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
 using namespace std;
-long long a[100001];
-long long n,m,p;
-struct node
+#define lch id << 1
+#define rch id << 1 | 1
+typedef long long ll;
+int n, m, mod;
+int a[100005];
+struct tree
 {
-    long long l;
-    long long r;
-    long long sum;
-    long long lazy_jia;
-    long long lazy_cheng;
-    node()
-    {
-    	lazy_cheng=1;
-    }
-}c[100001<<4];
-void build(long long id,long long l,long long r)
+    int l;
+    int r;
+    int num;
+    int lazy_add;
+    int lazy_mul;
+} tr[400005];
+void build(int id, int l, int r)
 {
-    c[id].l=l;
-    c[id].r=r;
-    if(l==r)
+    tr[id].l = l;
+    tr[id].r = r;
+    tr[id].lazy_mul = 1;
+    if (l == r)
     {
-        c[id].sum=a[l]%p;
-        return;	
+        tr[id].num = a[l];
+        return;
     }
-    long long mid=(l+r)/2;
-    build(lch,l,mid);
-    build(rch,mid+1,r);
-    c[id].sum=(c[lch].sum+c[rch].sum)%p;
+    int mid = (l + r) >> 1;
+    build(lch, l, mid);
+    build(rch, mid + 1, r);
+    tr[id].num = (tr[lch].num + tr[rch].num) % mod;
     return;
 }
-void pushdown_cheng(long long id)
+void pushdown(int id)
 {
-    if(c[id].lazy_cheng&&c[id].l!=c[id].r)
-    {
-        long long lazy=c[id].lazy_cheng;
-        c[id].lazy_cheng=1;
-        c[lch].lazy_cheng*=lazy;
-        c[rch].lazy_cheng*=lazy;
-        c[lch].sum*=lazy;	
-        c[rch].sum*=lazy;
-        c[lch].sum%=p;
-        c[rch].sum%=p;
-    }
+    int lazy_add = tr[id].lazy_add;
+    int lazy_mul = tr[id].lazy_mul;
+    tr[id].lazy_add = 0;
+    tr[id].lazy_mul = 1;
+    tr[lch].num = ((ll)tr[lch].num * lazy_mul + (ll)(tr[lch].r - tr[lch].l + 1) * lazy_add) % mod;
+    tr[lch].lazy_mul = (ll)tr[lch].lazy_mul * lazy_mul % mod;
+    tr[lch].lazy_add = ((ll)tr[lch].lazy_add * lazy_mul % mod + lazy_add) % mod;
+    tr[rch].num = ((ll)tr[rch].num * lazy_mul + (ll)(tr[rch].r - tr[rch].l + 1) * lazy_add) % mod;
+    tr[rch].lazy_mul = (ll)tr[rch].lazy_mul * lazy_mul % mod;
+    tr[rch].lazy_add = ((ll)tr[rch].lazy_add * lazy_mul % mod + lazy_add) % mod;
     return;
 }
-void pushdown_jia(long long id)
+void add(int id, int l, int r, int val)
 {
-    if(c[id].lazy_jia&&c[id].l!=c[id].r)
+    if (tr[id].l == l && tr[id].r == r)
     {
-        long long lazy=c[id].lazy_jia;
-        c[id].lazy_jia=0;
-        c[lch].lazy_jia+=lazy;
-        c[rch].lazy_jia+=lazy;
-        c[lch].sum+=(c[lch].r-c[lch].l+1)*lazy;	
-        c[rch].sum+=(c[rch].r-c[rch].l+1)*lazy;
-        c[lch].sum%=p;
-        c[rch].sum%=p;
+        tr[id].num = (tr[id].num + (ll)(tr[id].r - tr[id].l + 1) * val % mod) % mod;
+        tr[id].lazy_add = (tr[id].lazy_add + val) % mod;
+        return;
     }
+    pushdown(id);
+    int mid = (tr[id].l + tr[id].r) >> 1;
+    if (r <= mid)
+        add(lch, l, r, val);
+    if (l >= mid + 1)
+        add(rch, l, r, val);
+    if (l <= mid && r >= mid + 1)
+    {
+        add(lch, l, mid, val);
+        add(rch, mid + 1, r, val);
+    }
+    tr[id].num = (tr[lch].num + tr[rch].num) % mod;
     return;
 }
-void add_jia(long long id,long long l,long long r,long long val)
+void mul(int id, int l, int r, int val)
 {
-    pushdown_cheng(id);
-    pushdown_jia(id);
-    if(c[id].l==l&&c[id].r==r)	
+    if (tr[id].l == l && tr[id].r == r)
     {
-        c[id].lazy_jia+=val;
-        c[id].sum+=(r-l+1)*val;
-        c[id].sum%=p;
+        tr[id].num = (ll)tr[id].num * val % mod;
+        tr[id].lazy_add = (ll)tr[id].lazy_add * val % mod;
+        tr[id].lazy_mul = (ll)tr[id].lazy_mul * val % mod;
         return;
     }
-    long long mid=(c[id].l+c[id].r)/2;
-    if(mid<l)
+    pushdown(id);
+    int mid = (tr[id].l + tr[id].r) >> 1;
+    if (r <= mid)
+        mul(lch, l, r, val);
+    if (l >= mid + 1)
+        mul(rch, l, r, val);
+    if (l <= mid && r >= mid + 1)
     {
-        add_jia(rch,l,r,val);
-   	 	c[id].sum=(c[lch].sum+c[rch].sum)%p; 
-        return;
+        mul(lch, l, mid, val);
+        mul(rch, mid + 1, r, val);
     }
-    if(mid+1>r)
-    {
-        add_jia(lch,l,r,val);	
-   	 	c[id].sum=(c[lch].sum+c[rch].sum)%p; 
-        return;
-    }
-    add_jia(lch,l,mid,val);
-    add_jia(rch,mid+1,r,val);
-   	c[id].sum=(c[lch].sum+c[rch].sum)%p; 
+    tr[id].num = (tr[lch].num + tr[rch].num) % mod;
     return;
 }
-void add_cheng(long long id,long long l,long long r,long long val)
+int ask(int id, int l, int r)
 {
-    pushdown_cheng(id);
-    pushdown_jia(id);
-    if(c[id].l==l&&c[id].r==r)	
-    {
-        c[id].lazy_cheng*=val;
-        c[id].sum*=val;
-        c[id].sum%=p;
-        c[id].lazy_jia*=val;
-        return;
-    }
-    long long mid=(c[id].l+c[id].r)/2;
-    if(mid<l)
-    {
-        add_cheng(rch,l,r,val);
- 	   	c[id].sum=(c[lch].sum+c[rch].sum)%p; 
-        return;
-    }
-    if(mid+1>r)
-    {
-        add_cheng(lch,l,r,val);	
-   		c[id].sum=(c[lch].sum+c[rch].sum)%p; 
-        return;
-    }
-    add_cheng(lch,l,mid,val);
-    add_cheng(rch,mid+1,r,val);
-    c[id].sum=(c[lch].sum+c[rch].sum)%p; 
-    return;
-}
-long long ask(long long id,long long l,long long r)
-{
-    pushdown_cheng(id);
-    pushdown_jia(id);
-    if(c[id].l==l&&c[id].r==r)
-        return c[id].sum%p;
-    long long mid=(c[id].l+c[id].r)/2;
-    if(mid<l)
-        return ask(rch,l,r)%p;
-    if(mid+1>r)
-        return ask(lch,l,r)%p;
-    return (ask(lch,l,mid)+ask(rch,mid+1,r))%p;
+    if (tr[id].l == l && tr[id].r == r)
+        return tr[id].num;
+    pushdown(id);
+    int mid = (tr[id].l + tr[id].r) >> 1;
+    if (r <= mid)
+        return ask(lch, l, r);
+    if (l >= mid + 1)
+        return ask(rch, l, r);
+    return (ask(lch, l, mid) + ask(rch, mid + 1, r)) % mod;
 }
 int main()
 {
-    cin>>n>>m>>p;
-    for(long long i=1;i<=n;++i)
-        cin>>a[i];
-    build(1,1,n);
-    for(long long i=1;i<=m;++i)
+    scanf("%d%d%d", &n, &m, &mod);
+    for (int i = 1; i <= n; ++i)
+        scanf("%d", &a[i]);
+    build(1, 1, n);
+    for (int i = 1; i <= m; ++i)
     {
-        long long pan,x,y,k;
-        cin>>pan;
-        if(pan==1)
+        int type, x, y;
+        scanf("%d%d%d", &type, &x, &y);
+        if (type == 1)
         {
-            cin>>x>>y>>k;
-            add_cheng(1,x,y,k);
+            int k;
+            scanf("%d", &k);
+            mul(1, x, y, k);
         }
-        if(pan==2)
+        else if (type == 2)
         {
-            cin>>x>>y>>k;
-            add_jia(1,x,y,k);
+            int k;
+            scanf("%d", &k);
+            add(1, x, y, k);
         }
-        if(pan==3)
-        {
-        	cin>>x>>y;
-            cout<<ask(1,x,y)%p<<endl;
-        }
+        else
+            printf("%d\n", ask(1, x, y));
     }
     return 0;
-}	
+}

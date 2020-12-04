@@ -2,17 +2,18 @@
 #include <cstdio>
 #include <cstring>
 #include <algorithm>
-#define int long long
-#define inf 0x7fffffffffffffff
 using namespace std;
-int n, m, s, t, ans, sum = 1;
-int head[10005], lev[100005], cur[100005];
+typedef long long ll;
+const ll inf = 0x7f7f7f7f7f7f7f7f;
+int n, m, s, t, sum = 1;
+int head[205], cur[205], lev[205], l[205];
+ll ans;
 struct node
 {
     int v;
     int w;
     int nxt;
-} a[200005];
+} a[10005];
 void ins(int u, int v, int w)
 {
     ++sum;
@@ -29,23 +30,24 @@ void ins(int u, int v, int w)
 }
 bool bfs()
 {
-    int hh = 0, tt = 1, q[100005];
-    memset(lev, -1, sizeof(lev));
     for (int i = 1; i <= n; ++i)
+    {
+        lev[i] = -1;
         cur[i] = head[i];
-    q[1] = s;
+    }
+    int hh = 0, tt = 1;
+    l[tt] = s;
     lev[s] = 0;
     while (hh < tt)
     {
-        ++hh;
-        int k = q[hh];
+        int k = l[++hh];
         int d = head[k];
         while (d)
         {
             if (a[d].w > 0 && lev[a[d].v] == -1)
             {
                 lev[a[d].v] = lev[k] + 1;
-                q[++tt] = a[d].v;
+                l[++tt] = a[d].v;
                 if (a[d].v == t)
                     return true;
             }
@@ -54,16 +56,17 @@ bool bfs()
     }
     return false;
 }
-int dinic(int k, int flow)
+ll dinic(int k, ll flow)
 {
     if (k == t)
         return flow;
-    int d = cur[k], res = 0, delta;
+    ll delta, res = 0;
+    int d = cur[k];
     while (d)
     {
-        if (a[d].w > 0 && lev[k] + 1 == lev[a[d].v])
+        if (a[d].w > 0 && lev[a[d].v] == lev[k] + 1)
         {
-            delta = dinic(a[d].v, min(a[d].w, flow - res));
+            delta = dinic(a[d].v, min((ll)a[d].w, flow - res));
             if (delta)
             {
                 a[d].w -= delta;
@@ -80,13 +83,13 @@ int dinic(int k, int flow)
         lev[k] = -1;
     return res;
 }
-signed main()
+int main()
 {
-    scanf("%lld%lld%lld%lld", &n, &m, &s, &t);
+    scanf("%d%d%d%d", &n, &m, &s, &t);
     for (int i = 1; i <= m; ++i)
     {
         int u, v, w;
-        scanf("%lld%lld%lld", &u, &v, &w);
+        scanf("%d%d%d", &u, &v, &w);
         ins(u, v, w);
     }
     while (bfs())

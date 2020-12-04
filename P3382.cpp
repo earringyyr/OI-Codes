@@ -1,33 +1,32 @@
 #include <iostream>
 #include <cstdio>
+#include <cstring>
+#include <algorithm>
 using namespace std;
-#define dlt 0.000001
+const double eps = 1e-8;
 int n;
 double l, r, a[15];
-double check(double k)
-{
-    double ans = 0, kk = 1;
-    for (int i = n + 1; i >= 1; --i)
-    {
-        ans += a[i] * kk;
-        kk *= k;
-    }
-    return ans;
-}
 int main()
 {
-    cin >> n >> l >> r;
-    for (int i = 1; i <= n + 1; ++i)
-        cin >> a[i];
-    double lef = l, rig = r;
-    while (rig - lef > dlt)
+    scanf("%d%lf%lf", &n, &l, &r);
+    for (int i = n; i >= 0; --i)
+        scanf("%lf", &a[i]);
+    while (r - l > eps)
     {
-        double mid1 = lef + (rig - lef) / 3, mid2 = rig - (rig - lef) / 3;
-        if (check(mid1) < check(mid2))
-            lef = mid1;
+        double mid1 = l + (r - l) / 3, mid2 = r - (r - l) / 3;
+        double num1 = 1, num2 = 1, ans1 = 0, ans2 = 0;
+        for (int i = 0; i <= n; ++i)
+        {
+            ans1 += a[i] * num1;
+            ans2 += a[i] * num2;
+            num1 *= mid1;
+            num2 *= mid2;
+        }
+        if (ans1 > ans2)
+            r = mid2;
         else
-            rig = mid2;
+            l = mid1;
     }
-    printf("%.5f", lef);
+    printf("%.5f", l);
     return 0;
 }

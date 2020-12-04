@@ -1,44 +1,50 @@
 #include <iostream>
 #include <cstdio>
+#include <cstring>
+#include <algorithm>
 using namespace std;
-int a[100005];
-int ksm(int m, int n, int mod)
+typedef long long ll;
+int mod;
+int fac[100005], inv[100005];
+int ksm(int aa, int k)
 {
-    int x = 1;
-    while (n)
+    int bb = 1;
+    while (k)
     {
-        if (n % 2 == 1)
-            x = (long long)x * m % mod;
-        m = (long long)m * m % mod;
-        n /= 2;
+        if (k & 1)
+            bb = (ll)bb * aa % mod;
+        aa = (ll)aa * aa % mod;
+        k >>= 1;
     }
-    return x;
+    return bb;
 }
-int c(int m, int n, int p)
+int C(int n, int m)
 {
     if (m > n)
         return 0;
-    return (long long)a[n] * ksm(a[m], p - 2, p) % p * ksm(a[n - m], p - 2, p) % p;
+    return (ll)fac[n] * inv[m] % mod * inv[n - m] % mod;
 }
-int lucas(int m, int n, int p)
+int Lucas(int n, int m)
 {
     if (m == 0)
         return 1;
-    return (long long)c(m % p, n % p, p) * lucas(m / p, n / p, p) % p;
+    return Lucas(n / mod, m / mod) * C(n % mod, m % mod) % mod;
 }
 int main()
 {
-    int t;
-    scanf("%d", &t);
-    for (int tt = 1; tt <= t; ++tt)
+    int T;
+    scanf("%d", &T);
+    while (T--)
     {
-        int n, m, p;
-        scanf("%d%d%d", &n, &m, &p);
-        n = m + n;
-        a[0] = 1;
-        for (int i = 1; i <= n; ++i)
-            a[i] = (long long)a[i - 1] * i % p;
-        printf("%d\n", lucas(m, n, p));
+        int n, m;
+        scanf("%d%d%d", &n, &m, &mod);
+        fac[0] = 1;
+        for (int i = 1; i < mod; ++i)
+            fac[i] = (ll)fac[i - 1] * i % mod;
+        inv[mod - 1] = ksm(fac[mod - 1], mod - 2);
+        for (int i = mod - 2; i >= 0; --i)
+            inv[i] = (ll)inv[i + 1] * (i + 1) % mod;
+        printf("%d\n", Lucas(n + m, n));
     }
     return 0;
 }

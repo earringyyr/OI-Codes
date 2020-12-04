@@ -1,20 +1,20 @@
 #include <iostream>
 #include <cstdio>
+#include <cstring>
+#include <algorithm>
 using namespace std;
 int n, m, sum, cnt, top, col;
-int head[2000005], s[2000005];
-int low[2000005], dfn[2000005];
-int co[2000005], num[2000005];
+int head[2000005], dfn[2000005], low[2000005], co[2000005], st[2000005];
 struct node
 {
     int v;
-    int next;
+    int nxt;
 } a[2000005];
 void ins(int u, int v)
 {
     ++sum;
     a[sum].v = v;
-    a[sum].next = head[u];
+    a[sum].nxt = head[u];
     head[u] = sum;
     return;
 }
@@ -23,7 +23,7 @@ void tarjan(int k)
     ++cnt;
     dfn[k] = cnt;
     low[k] = cnt;
-    s[++top] = k;
+    st[++top] = k;
     int d = head[k];
     while (d)
     {
@@ -33,78 +33,64 @@ void tarjan(int k)
             low[k] = min(low[k], low[a[d].v]);
         }
         else if (!co[a[d].v])
-            low[k] = min(low[k], low[a[d].v]);
-        d = a[d].next;
+            low[k] = min(low[k], dfn[a[d].v]);
+        d = a[d].nxt;
     }
-    if (low[k] == dfn[k])
+    if (dfn[k] == low[k])
     {
-        col++;
-        while (dfn[s[top]] != low[s[top]])
+        ++col;
+        while (dfn[st[top]] != low[st[top]])
         {
-            co[s[top]] = col;
+            co[st[top]] = col;
             --top;
         }
-        co[s[top]] = col;
-        top--;
+        co[st[top]] = col;
+        --top;
     }
     return;
 }
 int main()
 {
     scanf("%d%d", &n, &m);
-    for (int k = 1; k <= m; ++k)
+    for (int i = 1; i <= m; ++i)
     {
-        int i, a, j, b;
-        scanf("%d%d%d%d", &i, &a, &j, &b);
-        if (a && b)
+        int x, y, a, b;
+        scanf("%d%d%d%d", &x, &a, &y, &b);
+        if (a == 0 && b == 0)
         {
-            num[i + n]++;
-            num[j + n]++;
-            ins(i + n, j);
-            ins(j + n, i);
+            ins(x + n, y);
+            ins(y + n, x);
         }
-        if (a && !b)
+        if (a == 0 && b == 1)
         {
-            num[j + n]++;
-            num[j]++;
-            ins(i + n, j + n);
-            ins(j, i);
+            ins(x + n, y + n);
+            ins(y, x);
         }
-        if (!a && b)
+        if (a == 1 && b == 0)
         {
-            num[i]++;
-            num[j + n]++;
-            ins(i, j);
-            ins(j + n, i + n);
+            ins(x, y);
+            ins(y + n, x + n);
         }
-        if (!a && !b)
+        if (a == 1 && b == 1)
         {
-            num[i]++;
-            num[j]++;
-            ins(i, j + n);
-            ins(j, i + n);
+            ins(x, y + n);
+            ins(y, x + n);
         }
     }
     for (int i = 1; i <= 2 * n; ++i)
         if (!dfn[i])
             tarjan(i);
-    bool p = true;
     for (int i = 1; i <= n; ++i)
         if (co[i] == co[i + n])
         {
-            p = false;
-            break;
+            printf("IMPOSSIBLE");
+            return 0;
         }
-    if (!p)
-        printf("IMPOSSIBLE");
-    else
-    {
-        printf("POSSIBLE\n");
-        for (int i = 1; i <= n; ++i)
-            if (co[i] < co[i + n])
-                cout << 1 << " ";
-            else
-                cout << 0 << " ";
-    }
+    puts("POSSIBLE");
+    for (int i = 1; i <= n; ++i)
+        if (co[i] < co[i + n])
+            printf("0 ");
+        else
+            printf("1 ");
     return 0;
 }

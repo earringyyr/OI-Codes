@@ -1,27 +1,32 @@
 #include <iostream>
 #include <cstdio>
+#include <cstring>
+#include <algorithm>
 using namespace std;
-long long n, ans, a[55], s[55];
+typedef long long ll;
+int n;
+ll ans, s[55], w[55];
 int main()
 {
-    scanf("%lld", &n);
+    scanf("%d", &n);
     for (int i = 1; i <= n; ++i)
     {
-        scanf("%lld", &a[i]);
+        scanf("%lld", &s[i]);
         for (int j = 50; j >= 0; --j)
-            if (a[i] & (1LL << j))
+            if ((1LL << j) & s[i])
             {
-                if (!s[j])
+                if (!w[j])
                 {
-                    s[j] = a[i];
+                    w[j] = s[i];
                     break;
                 }
-                a[i] ^= s[j];
+                else
+                    s[i] ^= w[j];
             }
     }
     for (int i = 50; i >= 0; --i)
-        if ((ans ^ s[i]) > ans)
-            ans ^= s[i];
+        if ((ans ^ w[i]) > ans)
+            ans ^= w[i];
     printf("%lld", ans);
     return 0;
 }
