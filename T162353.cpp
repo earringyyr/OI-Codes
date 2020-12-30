@@ -60,7 +60,7 @@ void fwt_and(int *c)
 int main()
 {
     scanf("%d%d%d%u", &n, &k, &x, &seed);
-    if (k <= 150)
+    if (k <= 100)
     {
         for (int i = 1; i <= n; ++i)
         {
