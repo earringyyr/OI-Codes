@@ -74,6 +74,8 @@
         "optional": "cpp",
         "string_view": "cpp",
         "any": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "bit": "cpp",
+        "charconv": "cpp"
     }
 }
