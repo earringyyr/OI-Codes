@@ -7,7 +7,7 @@ using namespace std;
 typedef long long ll;
 const double pi = acos(-1.0);
 int n, cnt, rt, sum, minx, num;
-int head[200005], dep[200005], sze[200005], r[800005];
+int head[200005], dep[200005], r[800005];
 int vis[200005], siz[200005], sz[200005], dp[200005];
 ll ans[200005];
 struct node
@@ -70,16 +70,12 @@ void build(int &x, int l, int r)
 }
 void dfs(int k, int fa)
 {
-    sze[k] = 1;
     dep[k] = dep[fa] + 1;
     int d = head[k];
     while (d)
     {
         if (a[d].v != fa)
-        {
             dfs(a[d].v, k);
-            sze[k] += sze[a[d].v];
-        }
         d = a[d].nxt;
     }
     return;
@@ -138,53 +134,77 @@ void getrt(int k, int fa)
         rt = k;
     return;
 }
-void dfsl(int k, int num)
+void dfsl(int k, int num, int flg)
 {
-    fl[num].x += 1;
+    if (flg)
+        fl[num].x += 1;
     if (tr[k].l && !vis[tr[k].l])
-        dfsl(tr[k].l, num + 2);
+        dfsl(tr[k].l, num + 2, 0);
     if (tr[k].r && !vis[tr[k].r])
-        dfsl(tr[k].r, num + 1);
+        dfsl(tr[k].r, num + 1, 1);
     return;
 }
-void dfsr(int k, int num)
+void dfsr(int k, int num, int flg)
 {
-    fr[num].x += 1;
+    if (flg)
+        fr[num].x += 1;
     if (tr[k].l && !vis[tr[k].l])
-        dfsr(tr[k].l, num + 1);
+        dfsr(tr[k].l, num + 1, 1);
     if (tr[k].r && !vis[tr[k].r])
-        dfsr(tr[k].r, num + 2);
+        dfsr(tr[k].r, num + 2, 0);
     return;
 }
-void dfsL(int k, int num)
+void dfsL(int k, int num, int flg)
 {
-    gl[num].x += 1;
+    if (flg)
+        gl[num].x += 1;
     if (tr[k].l && !vis[tr[k].l])
-        dfsL(tr[k].l, num + 2);
+        dfsL(tr[k].l, num + 2, 0);
     if (tr[k].r && !vis[tr[k].r])
-        dfsL(tr[k].r, num + 1);
+        dfsL(tr[k].r, num + 1, 1);
     return;
 }
-void dfsR(int k, int num)
+void dfsR(int k, int num, int flg)
 {
-    gr[num].x += 1;
+    if (flg)
+        gr[num].x += 1;
     if (tr[k].l && !vis[tr[k].l])
-        dfsR(tr[k].l, num + 1);
+        dfsR(tr[k].l, num + 1, 1);
     if (tr[k].r && !vis[tr[k].r])
-        dfsR(tr[k].r, num + 2);
+        dfsR(tr[k].r, num + 2, 0);
     return;
 }
-void dfsf(int k, int numl, int numr)
+void dfsf(int k, int numl, int numr, int flg)
 {
     if (tr[k].fa && !vis[tr[k].fa])
-        if (k == tr[tr[k].fa].l)
-            dfsf(tr[k].fa, numl + 1, numr + 2);
+        if (flg == 1)
+            dfsf(tr[k].fa, numl + 1, numr + 2, k == tr[tr[k].fa].l ? 1 : 0);
         else
-            dfsf(tr[k].fa, numl + 2, numr + 1);
-    if (tr[k].l && !vis[tr[k].l] && tr[tr[k].l].fa != k)
-        dfsL(tr[k].l, numl + 1 + dep[k] - minx);
-    if (tr[k].r && !vis[tr[k].r] && tr[tr[k].r].fa != k)
-        dfsR(tr[k].r, numr + 1 + dep[k] - minx);
+            dfsf(tr[k].fa, numl + 2, numr + 1, k == tr[tr[k].fa].l ? 1 : 0);
+    if (tr[k].l && !vis[tr[k].l] && flg == 0)
+        dfsL(tr[k].l, numl + 1 + dep[k] - minx, 1);
+    if (tr[k].r && !vis[tr[k].r] && flg == 1)
+        dfsR(tr[k].r, numr + 1 + dep[k] - minx, 1);
+    return;
+}
+void dfslef(int k, int num, int flg)
+{
+    if (flg)
+        ++ans[num];
+    if (tr[k].l && !vis[tr[k].l])
+        dfslef(tr[k].l, num + 2, 0);
+    if (tr[k].r && !vis[tr[k].r])
+        dfslef(tr[k].r, num + 1, 1);
+    return;
+}
+void dfsrig(int k, int num, int flg)
+{
+    if (flg)
+        ++ans[num];
+    if (tr[k].l && !vis[tr[k].l])
+        dfsrig(tr[k].l, num + 1, 1);
+    if (tr[k].r && !vis[tr[k].r])
+        dfsrig(tr[k].r, num + 2, 0);
     return;
 }
 void solve(int k)
@@ -193,10 +213,8 @@ void solve(int k)
     init(2 * sz[k]);
     if (tr[k].l && tr[k].r && !vis[tr[k].l] && !vis[tr[k].r])
     {
-        fl[0].x += 1;
-        fr[0].x += 1;
-        dfsl(tr[k].l, 1);
-        dfsr(tr[k].r, 1);
+        dfsl(tr[k].l, 1, 1);
+        dfsr(tr[k].r, 1, 1);
         fft(fl, 1);
         fft(fr, 1);
         for (int i = 0; i < num; ++i)
@@ -208,15 +226,22 @@ void solve(int k)
             fl[i] = complex();
             fr[i] = complex();
         }
+        --ans[dep[k] + 2];
     }
-    dfsl(k, 0);
-    dfsr(k, 0);
+    dfsl(k, 0, k == tr[tr[k].fa].r ? 1 : 0);
+    dfsr(k, 0, k == tr[tr[k].fa].l ? 1 : 0);
     int tmp = k;
     while (tr[tmp].fa && !vis[tr[tmp].fa])
         tmp = tr[tmp].fa;
     minx = dep[tmp];
     if (tr[k].fa && !vis[tr[k].fa])
-        dfsf(tr[k].fa, 2, 2);
+    {
+        dfsf(tr[k].fa, 2, 2, k == tr[tr[k].fa].l ? 1 : 0);
+        if (k == tr[tr[k].fa].r && !vis[tr[tr[k].fa].l])
+            dfslef(tr[tr[k].fa].l, dep[k] + 1, 0);
+        if (k == tr[tr[k].fa].l && !vis[tr[tr[k].fa].r])
+            dfsrig(tr[tr[k].fa].r, dep[k] + 1, 0);
+    }
     fft(fl, 1);
     fft(fr, 1);
     fft(gl, 1);
@@ -225,18 +250,21 @@ void solve(int k)
         g[i] = fl[i] * gr[i];
     fft(g, -1);
     for (int i = 0; i < num; ++i)
-        ans[i + minx] += (ll)(g[i].x + 0.5);
+    {
+        ans[i + minx - 1] += (ll)(g[i].x + 0.5);
+        fl[i] = complex();
+        gr[i] = complex();
+    }
     for (int i = 0; i < num; ++i)
         g[i] = fr[i] * gl[i];
     fft(g, -1);
     for (int i = 0; i < num; ++i)
     {
-        ans[i + minx] += (ll)(g[i].x + 0.5);
-        fl[i] = complex();
+        ans[i + minx - 1] += (ll)(g[i].x + 0.5);
         fr[i] = complex();
         gl[i] = complex();
-        gr[i] = complex();
     }
+    ++ans[dep[k]];
     int d = head[k];
     while (d)
     {
